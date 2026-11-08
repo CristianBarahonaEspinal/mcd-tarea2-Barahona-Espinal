@@ -19,7 +19,5 @@ class Role(str, Enum):
     USER = "user"
     ASSISTANT = "assistant"
 
-    @classmethod
-    def list(cls) -> list[str]:
-        """Return all available role string values."""
-        return [r.value for r in cls]
+
+  
