@@ -59,3 +59,4 @@ src/minichat/
   controller/ chat_controller.py
   ui/    chat_app.py widgets_view.py history_html.py
 ```
+# Tarea desarrollada por Cristian Barahona Espinal
