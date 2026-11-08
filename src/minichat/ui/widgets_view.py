@@ -41,6 +41,14 @@ class WidgetsView(Observer):
 
         # Initial render
         self._render()
+        self._handlers = {
+            Event.GENERATING_START: self._on_generating_start,
+            Event.GENERATING_DONE: self._on_generating_done,
+            Event.GENERATING_ERROR: self._on_generating_error,
+            Event.EXPORT_DONE: self._on_export_done,
+            Event.MESSAGES_UPDATED: self._on_messages_updated,
+            Event.CONFIG_CHANGED: self._on_config_changed,
+        }
 
     # ---------- Build sections ----------
 
@@ -159,26 +167,32 @@ class WidgetsView(Observer):
         if idx is not None:
             self._ctl.delete_at(int(idx))
 
+    def _on_generating_start(self, payload: dict) -> None:
+        self._set_status("Generating…")
+
+    def _on_generating_done(self, payload: dict) -> None:
+        self._set_status("Done.")
+
+    def _on_generating_error(self, payload: dict) -> None:
+        self._set_status(f"Error: {payload.get('error', '')}")
+
+    def _on_export_done(self, payload: dict) -> None:
+        self._set_status(f"Exported: {payload.get('path', '')}")
+
+    def _on_messages_updated(self, payload: dict) -> None:
+        self._render()
+        self._set_status("Messages updated.")
+
+    def _on_config_changed(self, payload: dict) -> None:
+        self._render()
+        self._set_status("Config updated.")
     # ---------- Observer ----------
 
     def on_event(self, event: str, payload: dict) -> None:
-        """React to controller/session events."""
-        if event == Event.GENERATING_START:
-            self._set_status("Generating…")
-        elif event == Event.GENERATING_DONE:
-            self._set_status("Done.")
-        elif event == Event.GENERATING_ERROR:
-            self._set_status(f"Error: {payload.get('error', '')}")
-        elif event == Event.EXPORT_DONE:
-            self._set_status(f"Exported: {payload.get('path', '')}")
-        elif event in {Event.MESSAGES_UPDATED, Event.CONFIG_CHANGED}:
-            # Re-render after any session/config changes.
-            self._render()
-            # Set a neutral status (avoid showing export text by mistake).
-            if event == Event.MESSAGES_UPDATED:
-                self._set_status("Messages updated.")
-            else:
-                self._set_status("Config updated.")
+        """React to controller/session events using a dispatch table."""
+        handler = self._handlers.get(event)
+        if handler:
+            handler(payload)
 
     # ---------- Rendering ----------
 
