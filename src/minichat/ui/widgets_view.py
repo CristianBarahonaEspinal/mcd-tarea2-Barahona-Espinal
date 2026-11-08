@@ -10,6 +10,7 @@ from minichat.controller.chat_controller import ChatController
 from minichat.model.chat_session import ChatSession
 from minichat.model.role import Role
 from minichat.ui.history_html import HistoryHTML
+from ..core.events import Event
 
 
 class WidgetsView(Observer):
@@ -160,19 +161,19 @@ class WidgetsView(Observer):
 
     def on_event(self, event: str, payload: dict) -> None:
         """React to controller/session events."""
-        if event == "generating_start":
+        if event == Event.GENERATING_START:
             self._set_status("Generating…")
-        elif event == "generating_done":
+        elif event == Event.GENERATING_DONE:
             self._set_status("Done.")
-        elif event == "generating_error":
+        elif event == Event.GENERATING_ERROR:
             self._set_status(f"Error: {payload.get('error', '')}")
-        elif event == "export_done":
+        elif event == Event.EXPORT_DONE:
             self._set_status(f"Exported: {payload.get('path', '')}")
-        elif event in {"messages_updated", "config_changed"}:
+        elif event in {Event.MESSAGES_UPDATED, Event.CONFIG_CHANGED}:
             # Re-render after any session/config changes.
             self._render()
             # Set a neutral status (avoid showing export text by mistake).
-            if event == "messages_updated":
+            if event == Event.MESSAGES_UPDATED:
                 self._set_status("Messages updated.")
             else:
                 self._set_status("Config updated.")
